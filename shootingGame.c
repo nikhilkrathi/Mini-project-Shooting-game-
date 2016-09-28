@@ -1,18 +1,15 @@
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
-#define DELAY 1000
+#include <unistd.h>
+
+#define DELAY 20000
+#define MAX_ALIENS 3
 
 struct player {
 	int r,c;
 	char ch;
 };
-
-
-struct alien {
-	int r, c;
-	int alive;
-	char ch;
-	};
 	
 struct shoot {
 	int r,c;
@@ -20,29 +17,20 @@ struct shoot {
 	char ch;
 };
 
-int main() {
-	   int k, x, y, input, max_x = 0, max_y = 0;
-	   unsigned int currentshots = 0;
-	   struct alien alien; //[MAX_ALIEN];
-	   struct player tank;
-	   struct shoot shot[3];
+struct alien {
+	int r,c;
+	int pr,pc;
+	int alive; /* 1=alive 0=destroyed */
+	char direction; 
+	char ch;
+};
 
-	   tank.r = LINES / 2;
-	   tank.c = COLS - 1;
-	   tank.ch = '<';
-	   
-	  /* for(i = 0; i < MAX_ALIEN; i++) {
-	  	alien.r = 1;
-	  	alien.c = 1;
-	  	alien.alive = 1;
-	  	alien.ch = '%';
-		}
-	  */
-	  
-	   for (k=0; k<3; ++k) {
-	      shot[k].active = 0;
-	      shot[k].ch = '*';
-	   }
+int main() {
+	int k, x, y, input;
+   	unsigned int currentshots = 0;
+   	struct player tank;
+   	struct alien aliens[MAX_ALIENS];
+ 	struct shoot shot[3];
      
 	initscr();
 	
@@ -89,6 +77,25 @@ int main() {
 	noecho();
 	keypad( w, TRUE ); 
 	curs_set( 0 );
+	
+	   tank.r = LINES / 2;
+   	   tank.c = COLS - 1;
+	   tank.ch = '<';
+	   
+	   for (k=0; k<MAX_ALIENS; k++) {
+	      aliens[k].r = k+1;
+	      aliens[k].c = 1;
+	      aliens[k].pr = 0;
+	      aliens[k].pc = 0;
+	      aliens[k].ch = '@';
+	      aliens[k].alive = 1;
+	      aliens[k].direction = 'r';
+	   }
+	     
+	   for (k=0; k<3; k++) {
+	      shot[k].active = 0;
+	      shot[k].ch = '-';
+	   }
      
     	while(( ch = wgetch(w)) != 'q') { 
             sprintf(item, "%-7s",  list[i]); 
@@ -115,7 +122,107 @@ int main() {
                         break;
                             
                 case 10:
+                
+                	if(i == 0) {
+                	
+                 	   clear();
+			   noecho();
+			   curs_set(FALSE);
+			   cbreak();
+			   nodelay(stdscr,1);
+			   
+			      while(1) {
+
+				      /* Move tank */
+				      move(tank.r,tank.c);
+				      addch(tank.ch);   
+				      
+				      
+				      /* Move aliens */
+				      for (k=0; k<MAX_ALIENS; k++) {
+					 if (aliens[k].alive == 1) {
+					    move(aliens[k].pr,aliens[k].pc);
+					    addch(' ');
+					    
+					    move(aliens[k].r,aliens[k].c);
+					    addch(aliens[k].ch);
+					    
+					    aliens[k].pr = aliens[k].r;
+					    aliens[k].pc = aliens[k].c;
+				       
+					    /* Set alien's next position */
+					    if (aliens[k].direction == 'r')
+					       ++aliens[k].c;
+					       
+					    if(aliens[k].c == COLS - 2)
+						aliens[k].ch = ' ';
+					 }
+				      }
+				      
+				      for (k=0; k<3; k++) {
+					 if (shot[k].active == 1) {
+					    if (shot[k].c > 0) {
+					       if (shot[k].c < COLS - 2) {
+						  move(shot[k].r ,shot[k].c + 1);
+						  addch(' ');
+					       }
+					       if (shot[k].active == 1) {
+						  move(shot[k].r,shot[k].c);
+						  addch(shot[k].ch);
+						  
+						  --shot[k].c;
+					       }
+					    }
+					    else {
+					       shot[k].active = 0;
+					       --currentshots;
+					       move(shot[k].r ,shot[k].c + 1);
+					       addch(' ');
+					    }
+				       }
+				   }
+				    
+				     refresh();
+				     usleep(DELAY);   
+				   
+				     input = getch();
+				      
+				     move(tank.r,tank.c);
+				     addch(' ');   
+				    
+				  /* Check input */
+				   if (input == 'w')
+					tank.r--;
+				   else if (input == 's')
+					tank.r++;
+				   else if (input == ' ' && currentshots < 3) {
+					for (k=0; k<3; k++) {
+					    if (shot[k].active == 0) {
+					       shot[k].active = 1;
+					       ++currentshots;
+					       //--score;
+					       shot[k].r = tank.r;
+					       shot[k].c = COLS - 2;
+					       break;
+					    }
+					 }
+				   
+				   }
+				   
+				   else if(input == 'q')
+				      	break;
+
+				  /* Check for valid tank position */
+				   if (tank.r > LINES - 1)
+					tank.r = LINES - 1;
+				   else if (tank.r < 0)
+					tank.r = 0;    
+				   }
+				   
+		        }
+                	
                 	if(i == 1) {
+                	//Settings
                 		clear();
 				move((LINES - 5)/2, (COLS - 8)/2);
 				addstr("Choice 1");
@@ -145,115 +252,7 @@ int main() {
 
 				}
 			}
-	
-			if(i == 0) {
-			
-				   clear();
-				   noecho();
-				   curs_set(FALSE);
-				   cbreak();
-				   nodelay(stdscr,1);
-											          
-				   while(1) {
-				      /* Move aliens */
-				    /*  move(alien.r,alien.c);
-				      addch(alien.ch);
-					    
-				      alien.c++;
-				      
-				      move(alien.r,alien.c);
-				      addch(' ');
-				     */ 
-				      /* Move tank */
-				      move(tank.r,tank.c);
-				      addch(tank.ch);
-
-				      input = getch();
-				      
-				      move(tank.r,tank.c);
-				      addch(' ');      
-				      
-				    /*  for (k=0; k<3; ++k) {
-					 if (shot[k].active == 1) {
-					    if (shot[k].c > 0) {
-					       if (shot[k].c < COLS - 2) {
-						  move(shot[k].r ,shot[k].c + 1);
-						  addch(' ');
-					       }
-					       if (shot[k].active == 1) {
-						  move(shot[k].r,shot[k].c);
-						  addch(shot[k].ch);
-						  
-						  --shot[k].c;
-					       }
-					    }
-					    else {
-					       shot[k].active = 0;
-					       --currentshots;
-					       move(shot[k].r ,shot[k].c + 1);
-					       addch(' ');
-					    }
-				       }
-				   }
-				  */
-				   
-				   for(k = 0; k < 3; k++) {
-				   	if(shot[k].active == 1) {
-				   		while(shot[k].c != 0) {
-				   			move(shot[k].r ,shot[k].c);
-				   			addch(shot[k].ch);
-				   			move(shot[k].r ,shot[k].c + 1);
-				   			addch(' ');
-				   			shot[k].c--;
-				   		}
-				   	}
-				   }
-				   
-				      /* Check input */
-				   if (input == KEY_UP)
-					tank.r--;
-				   else if (input == KEY_DOWN)
-					tank.r++;
-				   else if (input == ' ' && currentshots < 3) {
-					for (i=0; i<3; ++i) {
-					    if (shot[k].active == 0) {
-					       shot[k].active = 1;
-					       ++currentshots;
-					       //--score;
-					       shot[k].r = tank.r;
-					       shot[k].c = COLS - 2;
-					       break;
-					    }
-					 }
-				  
-				  
-					/*Move shots*/
-				      //currentshots++;
-				/*      x = COLS - 2;
-				      y = tank.r;
-				     while(x != -10) {
-				      getmaxyx(stdscr, max_y, max_x);
 				 
-				      clear();
-				      mvprintw(y, x, "---");
-				      refresh();
-
-				      usleep(DELAY);
-				      x = x - 1;
-				     }
-				 */     
-				   }
-				   else if(input == 'q')
-				      	break;
-
-				      /* Check for valid tank position */
-				   if (tank.r > LINES - 1)
-					tank.r = LINES - 1;
-				   else if (tank.r < 0)
-					tank.r = 0;    
-				   }
-		        }
-							 
 			if(i == 2) {
 			
 				//High scores
@@ -261,6 +260,7 @@ int main() {
 			} 
 			 
 		   	if(i == 3) {
+		   	//Developed by
 				clear();
 		   		//delwin(w);
 				//delwin(w2);
@@ -283,6 +283,7 @@ int main() {
 		   	}
 		   	
 			if(i == 4) {
+			//Exit Game
 			 	endwin();
 			   	exit(0);
 			}
