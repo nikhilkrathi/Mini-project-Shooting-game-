@@ -38,6 +38,12 @@ struct options {
 	int overall,alien,shots,bombs,bombchance;
 };
 
+
+struct entry {
+   	char name[128];
+   	int score;
+};
+
 void gameover(int win, int score);
 void highscores();
 void settings();
@@ -444,19 +450,14 @@ void playgame() {
 	}
 	
 	gameover(win, score);
-    	endwin();
+    endwin();
 				   
 }
 
 /* This function handles displaying the win/lose screen */
 void gameover(int win, int score) {
-
-   /*typedef struct entry {
-   	char name[128];
-   	int score;
-   }entry;
-  */ 
-   char list[128];	
+   struct entry list;
+   char name[128];	
    FILE *fp;
    nodelay(stdscr, 0);
    curs_set(TRUE);
@@ -490,15 +491,13 @@ void gameover(int win, int score) {
    addstr("ENTER YOUR NAME: ");
    refresh();
    //getch();
-   getstr(list);
+   getstr(list.name);
    
    //Create a file, write name and scores in it, write a sorting algorithm and then when highscore function is called then display highscores in decreasing order. 
    
-   //strcpy(entry.name, list);
-   //entry.score = score;
+   list.score = score;
    fp = fopen("score.txt", "a");
-   //fprintf(fp, "%s %d", entry.name, entry.score);
-   fprintf(fp, "%s %d", name, score);
+   fprintf(fp, "%s %d", list.name, list.score);
    fprintf(fp,"\n");
    fclose(fp);
 }
@@ -509,7 +508,7 @@ void highscores () {
 	//Sort according to score with corr. player name
 	//Store data in another file ("highscore.txt")
 	//print data from "highscore.txt"
-
+	
 }
 
 void settings() {
