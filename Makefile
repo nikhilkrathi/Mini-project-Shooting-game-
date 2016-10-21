@@ -1,2 +1,2 @@
-try: shootingGame.c
-	cc shootingGame.c -o project -lncurses
+try: SpaceAce.c
+	cc SpaceAce.c -o project -lncurses
