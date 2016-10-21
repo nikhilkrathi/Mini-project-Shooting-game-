@@ -4,8 +4,12 @@
 #include <ncurses.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
-#define MAX_BOMBS 1000
+#define MAX_BOMBS 100000
 //#define DELAY 20000
 
 struct player {
@@ -132,14 +136,13 @@ int menu() {
 }
 
 void playgame() {
-	struct player tank;
+	struct player tank[15];
 	struct alien aliens[30];
-	struct shoot shot[3];
+	struct shoot shot[10];
 	struct bomb bomb[MAX_BOMBS];
 	struct options settings;
-	//struct options settings;
-	unsigned int input, loops=0, i=0, k=0, j=0, currentshots=0, currentbombs=0, currentaliens=30;
-	int random=0, score=0, win=-1;
+	unsigned int loops=0, i=0, k=0, j=0, currentshots=0, currentbombs=0, currentaliens=30;
+	int input, random=0, score=0, win=-1;
 	char tellscore[30];
 	    	   
 	clear();
@@ -152,15 +155,59 @@ void playgame() {
 	
 	/* Set default settings */
 	//This sets the default setting that is speed of alien and freq. of bombs etc.
-	settings.overall = 15000;
+	settings.overall = 6500;
 	settings.alien = 12;
 	settings.shots = 1;
 	settings.bombs = 10;
 	settings.bombchance = 5;
-	
-	tank.r = LINES / 2;
-	tank.c = COLS - 1;
-	tank.ch = '<';
+
+   		for(i=0; i<3; i++) {
+   			tank[i].r = LINES/2 - 2;
+   			tank[i].c = (COLS - i*3) - 1;
+   			if(i == 2)
+   				tank[i].ch = ' ';
+   			else
+   				tank[i].ch = '+';
+   		} 
+   			
+   		for(i=3; i<6; i++) {
+   			tank[i].r = LINES/2 - 1;
+   			tank[i].c = (COLS - (i-3)*3) - 1;
+   			if(i == 5)
+   				tank[i].ch = ' ';
+   			else
+   				tank[i].ch = '|';
+   		} 
+   			
+   		for(i=6; i<9; i++) {
+   			tank[i].r = LINES/2;
+   			tank[i].c = (COLS - (i-6)*3) - 1;
+   			if(i == 8)
+   				tank[i].ch = '<';
+   			else if(i == 7)
+   				tank[i].ch = ' ';
+   			else
+   				tank[i].ch = '|';
+   		}
+   		
+   		for(i=9; i<12; i++) {
+   			tank[i].r = LINES/2 + 1;
+   			tank[i].c = (COLS - (i-9)*3) - 1;
+   			if(i == 11)
+   				tank[i].ch = ' ';
+   			else
+   				tank[i].ch = '|';
+   		} 
+   		
+   		for(i=12; i<15; i++) {
+   			tank[i].r = LINES/2 + 2;
+   			tank[i].c = (COLS - (i-12)*3) - 1;
+   			if(i == 14)
+   				tank[i].ch = ' ';
+   			else
+   				tank[i].ch = '+';
+   		} 
+   		
 	
 	for (i=0; i<3; ++i) {
     	aliens[i].r = 5;
@@ -253,7 +300,7 @@ void playgame() {
       	aliens[i].direction = 'd';
    	}
 	/* Set shot settings */ 
-	for (k=0; k<3; k++) {
+	for (k=0; k<10; k++) {
 	    shot[k].active = 0;
 	    shot[k].ch = '*';
 	}
@@ -278,11 +325,14 @@ void playgame() {
       	sprintf(tellscore, "%d", score);
       	move(0,8);
       	addstr(tellscore);
+
+	//Move tank
 	
-		// Move tank 
-		move(tank.r,tank.c);
-		addch(tank.ch); 
+	for(i=0; i<15; i++) {
+		move(tank[i].r, tank[i].c);
+		addch(tank[i].ch);
 		
+	}
 		// Move bombs                                 
 		if (loops % settings.bombs == 0)                  
 			for (i=0; i<MAX_BOMBS; i++) {
@@ -312,7 +362,7 @@ void playgame() {
 		
 		// Move shots
 		if (loops % settings.shots == 0)
-		for (k=0; k<3; k++) {
+		for (k=0; k<10; k++) {
 			if (shot[k].active == 1) {
 				if (shot[k].c > 0) {
 					if (shot[k].c < COLS - 2) {
@@ -330,9 +380,23 @@ void playgame() {
 					     move(aliens[j].pr,aliens[j].pc);
 					     addch(' ');
 					     break;
-					  }
+					 }
+				       
 				       }
-					
+				       
+				       for(j=0; j<MAX_BOMBS; j++) {
+				       	 if(bomb[j].active == 1 && bomb[j].r == shot[k].r && bomb[j].c == shot[k].c) {
+				       	 	score += 5;
+				       	 	bomb[j].active = 0;
+				       	 	shot[k].active = 0;
+				       	 	--currentshots;
+				       	 	move(bomb[j].r, bomb[j].c - 1);
+				       	 	addch(' ');
+				       	 	break;
+				       	 }
+				       	
+				       }
+				       
 					if (shot[k].active == 1) {
 						move(shot[k].r,shot[k].c);
 						addch(shot[k].ch);
@@ -363,7 +427,7 @@ void playgame() {
 		        
 				// Check if alien should drop bomb 
 		        random = 1+(rand()%100);
-		        if ((settings.bombchance - random*5) >= 0 && currentbombs < MAX_BOMBS) {
+		        if ((settings.bombchance - random*1.5) >= 0 && currentbombs < MAX_BOMBS) {
 		           for (j=0; j<MAX_BOMBS; j++) {
 		              if (bomb[j].active == 0) {
 		                 bomb[j].active = 1;
@@ -382,11 +446,11 @@ void playgame() {
 		        	++aliens[i].r;
 		           
 		        /* Check alien's next positions */
-		        if (aliens[i].r == LINES - 2) {
+		        if (aliens[i].r == LINES - 3) {
 		        	aliens[i].c = aliens[i]. c + 6;
 		        	aliens[i].direction = 'u';
 		        }
-		        else if (aliens[i].r == 2) {
+		        else if (aliens[i].r == 4) {
 		        	aliens[i].c = aliens[i]. c + 6;
 		        	aliens[i].direction = 'd';
 		        }
@@ -405,35 +469,44 @@ void playgame() {
         }
     }
     for (i=0; i<MAX_BOMBS; ++i) {
-    	if (bomb[i].r == tank.r && bomb[i].c == tank.c) {
-        	win = 0;
-            break;
+    	for(j=0; j<15; j++) {	
+    		if (bomb[i].r == tank[j].r && bomb[i].c == tank[j].c) {
+        		win = 0;
+            	break;
+            }
        	}
     } 	
 				    
     refresh();
     usleep(settings.overall);
     loops++;
-      
-    input = getch();
-    move(tank.r,tank.c);
-	addch(' ');  
+   	
+	input = getch();	
+		
+	for(i=0; i<15; i++) {
+		move(tank[i].r,tank[i].c);
+      		addch(' ');
+    } 
 				    
 	//Check input
 	if(input == 'q')
 		win = 2; 
-	else if (input == KEY_UP)
-		tank.r--;
-	else if (input == KEY_DOWN)
-		tank.r++;
-	else if (input == ' ' && currentshots < 3) {
-		for (k=0; k<3; k++) {
+   else if (input == KEY_UP)
+	for(i=0; i<15; i++) 
+		tank[i].r--;			
+		
+   else if (input == KEY_DOWN)
+   	for(i=0; i<15; i++)
+   		tank[i].r++;
+   		
+	else if (input == ' ' && currentshots < 10) {
+		for (k=0; k<10; k++) {
 			if (shot[k].active == 0) {
 				shot[k].active = 1;
 					++currentshots;
 					--score;
-					shot[k].r = tank.r;
-					shot[k].c = COLS - 2;
+					shot[k].r = tank[8].r;
+					shot[k].c = COLS - 8;
 					break;
 			}
 		}
@@ -443,20 +516,44 @@ void playgame() {
         break;			   
 
 	// Check for valid tank position 
-	if (tank.r > LINES - 1)
-		tank.r = LINES - 1;
-	else if (tank.r < 2)
-		tank.r = 2;    
-	}
+   if (tank[13].r > LINES-1) {
+   		for(i=12; i<15; i++)
+        	tank[i].r = LINES - 1;
+    	for(i=9; i<12; i++)
+    		tank[i].r = LINES - 2;
+    	for(i=6; i<9; i++) 
+    		tank[i].r = LINES - 3;
+    	for(i=3; i<6; i++) 
+    		tank[i].r = LINES - 4;
+    	for(i=0; i<3; i++) 
+    		tank[i].r = LINES - 5; 
+    }
+
+
+   if (tank[0].r < 2) {
+   		for(i=0; i<3; i++)
+        	tank[i].r = 2;
+    	for(i=3; i<6; i++)
+    		tank[i].r = 3;
+    	for(i=6; i<9; i++) 
+    		tank[i].r = 4;
+    	for(i=9; i<12; i++) 
+    		tank[i].r = 5;
+    	for(i=12; i<15; i++) 
+    		tank[i].r = 6; 
+    } 
+        
+  }
 	
 	gameover(win, score);
-    endwin();
+    	endwin();
 				   
 }
 
 /* This function handles displaying the win/lose screen */
 void gameover(int win, int score) {
    struct entry list;
+   unsigned int input;
    char name[128];	
    FILE *fp;
    nodelay(stdscr, 0);
@@ -470,7 +567,7 @@ void gameover(int win, int score) {
       addstr("PRESS ANY KEY");
       move(0,COLS-1);
       refresh();
-      getch();
+      input = getch();
    }
    
    else if (win == 1) {
@@ -481,18 +578,19 @@ void gameover(int win, int score) {
       addstr("PRESS ANY KEY");
       move(0,COLS-1);
       refresh();
-      getch();
+      input = getch();
    }
    
-   clear();
-   echo();
-   nocbreak();
-   move((LINES/2)-2, (COLS/2)-9);
-   addstr("ENTER YOUR NAME: ");
-   refresh();
-   //getch();
-   getstr(list.name);
-   
+   if(input == 10) {
+	   clear();
+	   echo();
+	   nocbreak();
+	   move((LINES/2)-2, (COLS/2)-9);
+	   addstr("ENTER YOUR NAME: ");
+	   refresh();
+	   //getch();
+	   getstr(list.name);
+   }
    //Create a file, write name and scores in it, write a sorting algorithm and then when highscore function is called then display highscores in decreasing order. 
    
    list.score = score;
@@ -508,7 +606,32 @@ void highscores () {
 	//Sort according to score with corr. player name
 	//Store data in another file ("highscore.txt")
 	//print data from "highscore.txt"
+/*	
+	struct entry b[128], *a;
+	int fd, i, line;
+	char ch;
+	//char *name[128];
+	fd = open("score.txt", O_RDONLY, S_IRUSR);
+	if(fd == -1) {
+		perror("cp: can't open file");
+		exit(errno);
+	}
 	
+	//read(fd, &n, sizeof(n));  
+	while(read(fd, &ch, sizeof(ch))) {
+		if(ch == '\n')
+			line++;
+	}
+	
+	a = ((struct entry*)malloc(sizeof(b)));
+	while(i != n - 1) { // n is the total number of structures
+		read(fd, a, sizeof(struct entry));
+		strcpy(b[i].name, a->name);
+		b[i].score = a->score;
+		i++;
+	}	
+
+*/			
 }
 
 void settings() {
