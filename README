@@ -5,6 +5,13 @@ KEY_UP = To move the tank up
 KEY_DOWN = To move the tank down
 SPACE BAR = To shoot bullet 
 
+LEVELS:
+There are 4 levels:
+1)Easy
+2)Medium
+3)Hard
+4)Impossible
+
 AIM AND SCORING:
 The alien ship moves up and down and moves towards the tank after each lap.
 Shoot the alien and earn 20 points for each hit to the mini ship.
