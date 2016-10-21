@@ -7,12 +7,12 @@ SPACE BAR = To shoot bullet
 
 AIM AND SCORING:
 The alien ship moves up and down and moves towards the tank after each lap.
-Shoot the alien and earn 20 points for each  hit to the mini ship.
+Shoot the alien and earn 20 points for each hit to the mini ship.
 Every shot which does not hit the mini ship results in deduction of a point.
-Stay away from the bombs fired by the alien ship and shoot the at the same time to win.
+Stay away from the bombs fired by the alien ship and shoot them at the same time to earn +5 points.
 
 
 UPCOMING FEATURES:
 1)Highscore Functionality
 2)Different difficulty levels
-3)Multiplayer
+
