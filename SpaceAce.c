@@ -40,6 +40,7 @@ struct bomb {
 
 struct options {
 	int overall,alien,shots,bombs,bombchance;
+	double speed;
 };
 
 
@@ -50,8 +51,7 @@ struct entry {
 
 void gameover(int win, int score);
 void highscores();
-void settings();
-void aboutus();
+int aboutus();
 void exitgame();
 
 WINDOW *w, *w2, *w3;
@@ -61,7 +61,7 @@ int menu() {
 	noecho(); 
 	curs_set( 0 );
 	
-	char list[5][50] = { "PLAY GAME", "SETTINGS", "HIGH SCORES", "ABOUT US", "EXIT"};
+	char list[4][50] = { "PLAY GAME", "HIGH SCORES", "ABOUT US", "EXIT"};
 	char item[50];
 	int ch, i = 0;
 	char line[5][100] = {
@@ -90,7 +90,7 @@ int menu() {
 	//WINDOW *w;
 	w = newwin(15, 25, (LINES - 15) / 2, (COLS - 25) / 2 ); 
 	box( w, 0, 0 ); 
-	for( i=0; i<5; i++) {
+	for( i=0; i<4; i++) {
 		if( i == 0 ) 
 			wattron( w, A_STANDOUT ); 
 		else
@@ -102,20 +102,20 @@ int menu() {
 	
 	i = 0;
 	keypad( w, TRUE );
-	while((ch = wgetch(w)) != 'q') { 
+	while((ch = wgetch(w))) { 
             sprintf(item, "%-7s",  list[i]); 
             mvwprintw( w, i+1, 2, "%s", item ); 
             switch( ch ) {
                 case KEY_UP:
                 	if(i == 0)
-              	      	   i = 4;
+              	      	   i = 3;
                     else 
                          i--;
                          
                     break;
                             
                 case KEY_DOWN:
-                	if(i == 4)
+                	if(i == 3)
                            i = 0;
                            
                     else
@@ -142,8 +142,9 @@ void playgame() {
 	struct bomb bomb[MAX_BOMBS];
 	struct options settings;
 	unsigned int loops=0, i=0, k=0, j=0, currentshots=0, currentbombs=0, currentaliens=30;
-	int input, random=0, score=0, win=-1;
+	int input, random=0, score=0, win=-1, ch;
 	char tellscore[30];
+	WINDOW *w;
 	    	   
 	clear();
 	noecho();
@@ -160,6 +161,73 @@ void playgame() {
 	settings.shots = 1;
 	settings.bombs = 10;
 	settings.bombchance = 5;
+	settings.speed = 1.5;
+	
+	char list[4][50] = {"EASY", "MEDIUM", "HARD", "IMPOSSIBLE"};
+	char item[50];
+	
+    //levels Window
+    
+	w = newwin(15, 25, (LINES - 15) / 2, (COLS - 25) / 2 ); 
+	box( w, 0, 0 ); 
+	for( i=0; i<4; i++) {
+		if( i == 0 ) 
+			wattron( w, A_STANDOUT ); 
+		else
+			wattroff( w, A_STANDOUT );
+			sprintf(item, "%s",  list[i]);
+			mvwprintw( w, i+1, 2, "%s", item );
+	}
+	wrefresh(w);
+	
+	i = 0;
+	keypad( w, TRUE );
+	while((ch = wgetch(w)) != 10) { 
+            sprintf(item, "%-7s",  list[i]); 
+            mvwprintw( w, i+1, 2, "%s", item ); 
+            switch( ch ) {
+                case KEY_UP:
+                    if(i == 0)
+              	      	   i = 3;
+                    else 
+                         i--;
+                         
+                    break;
+                            
+                case KEY_DOWN:
+                    if(i == 3)
+                           i = 0;
+                           
+                    else
+                        i++;
+                        
+                	break; 
+     
+            }
+          
+            wattron( w, A_STANDOUT );
+            sprintf(item, "%-7s",  list[i]);
+            mvwprintw( w, i+1, 2, "%s", item);
+            wattroff( w, A_STANDOUT );
+             
+      }
+      
+      if(ch == 10) {
+      		if(i == 0) 
+			   	settings.speed = 2.5;
+			else if(i == 1)
+			   	settings.speed = 2;
+			else if(i == 2)
+			    settings.speed = 1.5;
+			else if(i == 3)
+			    settings.speed = 0.5;
+			delwin(w);
+        	clear();
+	  }
+      
+      
+	//Creating tank
+	
 
    		for(i=0; i<3; i++) {
    			tank[i].r = LINES/2 - 2;
@@ -207,7 +275,8 @@ void playgame() {
    			else
    				tank[i].ch = '+';
    		} 
-   		
+   
+   	//Creating aliens
 	
 	for (i=0; i<3; ++i) {
     	aliens[i].r = 5;
@@ -427,7 +496,7 @@ void playgame() {
 		        
 				// Check if alien should drop bomb 
 		        random = 1+(rand()%100);
-		        if ((settings.bombchance - random*1.5) >= 0 && currentbombs < MAX_BOMBS) {
+		        if ((settings.bombchance - random * settings.speed) >= 0 && currentbombs < MAX_BOMBS) {
 		           for (j=0; j<MAX_BOMBS; j++) {
 		              if (bomb[j].active == 0) {
 		                 bomb[j].active = 1;
@@ -634,12 +703,29 @@ void highscores () {
 */			
 }
 
-void settings() {
+int aboutus() {
 
-}
-
-void aboutus() {
-
+	int p;
+	clear();
+	move((LINES + 2)/2 , (COLS - 13)/2);
+	addstr("Version: v1.0");
+	move((LINES + 3)/2 , (COLS - 40)/2);
+	addstr("Developed and Designed by : Nikhil Rathi");
+	refresh();
+	int input = getch();
+	if(input == 'q')
+		exitgame();
+	else {
+		p = menu();
+		if(p == 0)
+			playgame();
+		if(p == 1)
+			highscores();
+		if(p == 2)
+			aboutus();
+		if(p == 3)
+			exitgame();
+	}
 }
 
 void exitgame() {
@@ -653,12 +739,10 @@ int main() {
 	if(p == 0)
 		playgame();
 	if(p == 1)
-		settings();
-	if(p == 0)
 		highscores();
-	if(p == 0)
+	if(p == 2)
 		aboutus();
-	if(p == 0)
+	if(p == 3)
 		exitgame();
 }
 	
