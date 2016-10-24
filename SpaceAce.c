@@ -61,7 +61,7 @@ int menu() {
 	noecho(); 
 	curs_set( 0 );
 	
-	char list[4][50] = { "PLAY GAME", "HIGH SCORES", "ABOUT US", "EXIT"};
+	char list[4][50] = { "PLAY GAME", "HIGH SCORES", "ABOUT GAME", "EXIT"};
 	char item[50];
 	int ch, i = 0;
 	char line[5][100] = {
@@ -558,7 +558,7 @@ void playgame() {
     } 
 				    
 	//Check input
-	if(input == 'q')
+   if(input == 'q')
 		win = 2; 
    else if (input == KEY_UP)
 	for(i=0; i<15; i++) 
@@ -670,46 +670,125 @@ void gameover(int win, int score) {
 }
 
 void highscores () {
-	
-	//Read data from score.txt
-	//Sort according to score with corr. player name
-	//Store data in another file ("highscore.txt")
-	//print data from "highscore.txt"
-/*	
-	struct entry b[128], *a;
-	int fd, i, line;
-	char ch;
-	//char *name[128];
+	struct entry b[128];
+	int fd, i = 0, line, c, d, swap, p;
+	char ch, a[10];
+	FILE *fw, *fp;
+	char name[128];
 	fd = open("score.txt", O_RDONLY, S_IRUSR);
 	if(fd == -1) {
 		perror("cp: can't open file");
 		exit(errno);
 	}
 	
-	//read(fd, &n, sizeof(n));  
+	//Read data from score.txt and get total no. of lines i.e structures
+	  
 	while(read(fd, &ch, sizeof(ch))) {
 		if(ch == '\n')
 			line++;
 	}
 	
-	a = ((struct entry*)malloc(sizeof(b)));
-	while(i != n - 1) { // n is the total number of structures
-		read(fd, a, sizeof(struct entry));
-		strcpy(b[i].name, a->name);
-		b[i].score = a->score;
-		i++;
-	}	
+	close(fd);	
 
-*/			
+	fp = fopen("score.txt", "r+");
+	while(i != line) {
+		fscanf(fp, "%s %d", b[i].name, &b[i].score);
+		i++;
+	}  
+	
+	fclose(fp);
+	
+	//Sort according to score with corr. player name
+	
+	for(c = 0; c < (line - 1); c++) {
+		for(d = 0; d < (line - c - 1); d++) {
+			if(b[d].score > b[d+1].score) {
+				swap = b[d].score;
+				b[d].score = b[d+1].score;
+				b[d+1].score = swap;
+				
+				strcpy(name, b[d].name);
+				strcpy(b[d].name, b[d+1].name);
+				strcpy(b[d+1].name, name);
+			}
+		}
+	}
+				
+	fw = fopen("Highscores.txt", "w");
+  	fprintf(fw, "%s %d\n", b[i - 1].name, b[i - 1].score); 
+   	fclose(fw);
+   	
+   	//print data from "highscore.txt"
+   	
+   	clear();
+   	sprintf(a, "%d", b[i - 1].score);
+   	move((LINES/2 - 3), (COLS/2) - 11);
+   	addstr("------TOP SCORER------");
+   	move((LINES/2), (COLS/2 - 7));
+   	addstr("NAME : ");
+    	move((LINES/2), (COLS/2));
+   	addstr(b[i - 1].name);
+   	move((LINES/2 + 1), (COLS/2 - 7));
+   	addstr("SCORE : ");
+   	move((LINES/2 + 1), (COLS/2));
+   	addstr(a);
+   	
+   	int input = getch();
+	if(input == 'q')
+		exitgame();
+	else {
+		p = menu();
+		if(p == 0)
+			playgame();
+		if(p == 1)
+			highscores();
+		if(p == 2)
+			aboutus();
+		if(p == 3)
+			exitgame();
+	}		
+			
 }
 
 int aboutus() {
 
 	int p;
 	clear();
-	move((LINES + 2)/2 , (COLS - 13)/2);
+	move(8, (COLS - 99)/2);
+	addstr("TITLE : SPACE-ACE");
+	move(10, (COLS - 99)/2);
+	addstr("PLAYING INSTRUCTION:");
+	move(11, (COLS - 99)/2);
+	addstr("KEY_UP = To move the tank up");
+	move(12, (COLS - 99)/2);
+	addstr("KEY_DOWN = To move the tank down");
+	move(13, (COLS - 99)/2);
+	addstr("SPACE BAR = To shoot bullet");
+	move(15, (COLS - 99)/2);
+	addstr("LEVELS:");
+	move(16, (COLS - 99)/2);
+	addstr("There are 4 levels:");
+	move(17, (COLS - 99)/2);
+	addstr("1)Easy");
+	move(18, (COLS - 99)/2);
+	addstr("2)Medium");
+	move(19, (COLS - 99)/2);
+	addstr("3)Hard");
+	move(20, (COLS - 99)/2);
+	addstr("4)Impossible");
+	move(22, (COLS - 99)/2);
+	addstr("AIM AND SCORING:");
+	move(23, (COLS - 99)/2);
+	addstr("The alien ship moves up and down and moves towards the tank after each lap.");
+	move(24, (COLS - 99)/2);
+	addstr("Shoot the alien and earn 20 points for each hit to the mini ship.");
+	move(25, (COLS - 99)/2);
+	addstr("Every shot which does not hit the mini ship results in deduction of a point.");
+	move(26, (COLS - 99) /2);
+	addstr("Stay away from the bombs fired by the alien ship and shoot them at the same time to earn +5 points");
+	move((LINES + 16)/2 , (COLS - 13)/2);
 	addstr("Version: v1.0");
-	move((LINES + 3)/2 , (COLS - 40)/2);
+	move((LINES + 17)/2 , (COLS - 40)/2);
 	addstr("Developed and Designed by : Nikhil Rathi");
 	refresh();
 	int input = getch();
