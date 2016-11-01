@@ -1,3 +1,20 @@
+/*	Copyright (C) 2016 Nikhil Rathi  
+    This file is part of SpaceAce.
+
+    SpaceAce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SpaceAce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with SpaceAce.  If not, see <http://www.gnu.org/licenses/>
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +27,7 @@
 #include <errno.h>
 
 #define MAX_BOMBS 100000
-//#define DELAY 20000
+
 
 struct player {
 	int r,c;
@@ -34,7 +51,7 @@ struct shoot {
 struct bomb {
 	int r,c;
 	int active; /* 1=active 0=inactive */
-	int loop; /* used to prevent alien from flashing when bomb is dropped */
+	int loop;
 	char ch;
 };
 
@@ -61,6 +78,8 @@ int menu() {
 	noecho(); 
 	curs_set( 0 );
 	
+	//Creating UI window.
+	
 	char list[4][50] = { "PLAY GAME", "HIGH SCORES", "ABOUT GAME", "EXIT"};
 	char item[50];
 	int ch, i = 0;
@@ -72,22 +91,24 @@ int menu() {
 	"-------|   |           |       |   |-------   |-------         |       |   |-------   |-------"};
 	char lineitem[100];
 
-	//WINDOW *w3;
+	//WINDOW 3
+	
 	w3 = newwin(40, 110, 8, (COLS - 110) / 2);
 	box(w3, 0, 0);
 	wrefresh(w3);
 	
-	//WINDOW *w2;
+	//WINDOW 2
+	
 	int j = 0;
 	w2 = newwin(35, 100, 10, (COLS - 100) / 2);
-	//box(w2, 0, 0);
 	for(j = 0; j<5; j++) {
 		sprintf(lineitem, "%s", line[j]);
-	     	mvwprintw( w2, j+1, 2, "%s", lineitem);
+	    mvwprintw( w2, j+1, 2, "%s", lineitem);
 	}
 	wrefresh( w2);   
 		
-	//WINDOW *w;
+	//WINDOW 1
+	
 	w = newwin(15, 25, (LINES - 15) / 2, (COLS - 25) / 2 ); 
 	box( w, 0, 0 ); 
 	for( i=0; i<4; i++) {
@@ -95,43 +116,44 @@ int menu() {
 			wattron( w, A_STANDOUT ); 
 		else
 			wattroff( w, A_STANDOUT );
-			sprintf(item, "%s",  list[i]);
-			mvwprintw( w, i+1, 2, "%s", item );
+			
+		sprintf(item, "%s",  list[i]);
+		mvwprintw( w, i+1, 2, "%s", item );
 	}
 	wrefresh(w);  
 	
 	i = 0;
 	keypad( w, TRUE );
 	while((ch = wgetch(w))) { 
-            sprintf(item, "%-7s",  list[i]); 
-            mvwprintw( w, i+1, 2, "%s", item ); 
-            switch( ch ) {
-                case KEY_UP:
-                	if(i == 0)
-              	      	   i = 3;
-                    else 
-                         i--;
+    	sprintf(item, "%-7s",  list[i]); 
+   		mvwprintw( w, i+1, 2, "%s", item ); 
+        switch( ch ) {
+            case KEY_UP:
+               	if(i == 0)
+              	    i = 3;
+                else 
+                    i--;
                          
-                    break;
+                break;
                             
-                case KEY_DOWN:
-                	if(i == 3)
-                           i = 0;
+            case KEY_DOWN:
+                if(i == 3)
+                    i = 0;
                            
-                    else
-                        i++;
+                else
+                    i++;
                         
-                	break; 
+                break; 
                 	
-                case 10:
-	       			return i;
-       				break;
-            }
+            case 10:
+	       		return i;
+       			break;
+        }
             
-            wattron( w, A_STANDOUT );
-            sprintf(item, "%-7s",  list[i]);
-            mvwprintw( w, i+1, 2, "%s", item);
-            wattroff( w, A_STANDOUT ); 
+        wattron( w, A_STANDOUT );
+        sprintf(item, "%-7s",  list[i]);
+        mvwprintw( w, i+1, 2, "%s", item);
+        wattroff( w, A_STANDOUT ); 
 	}
 }
 
@@ -156,7 +178,8 @@ void playgame() {
 	
 	/* Set default settings */
 	//This sets the default setting that is speed of alien and freq. of bombs etc.
-	settings.overall = 6500;
+	
+	settings.overall = 3000;
 	settings.alien = 12;
 	settings.shots = 1;
 	settings.bombs = 10;
@@ -175,28 +198,29 @@ void playgame() {
 			wattron( w, A_STANDOUT ); 
 		else
 			wattroff( w, A_STANDOUT );
-			sprintf(item, "%s",  list[i]);
-			mvwprintw( w, i+1, 2, "%s", item );
+			
+		sprintf(item, "%s",  list[i]);
+		mvwprintw( w, i+1, 2, "%s", item );
 	}
 	wrefresh(w);
 	
 	i = 0;
 	keypad( w, TRUE );
 	while((ch = wgetch(w)) != 10) { 
-            sprintf(item, "%-7s",  list[i]); 
-            mvwprintw( w, i+1, 2, "%s", item ); 
-            switch( ch ) {
+    	sprintf(item, "%-7s",  list[i]); 
+    	mvwprintw( w, i+1, 2, "%s", item ); 
+        	switch( ch ) {
                 case KEY_UP:
                     if(i == 0)
-              	      	   i = 3;
+              	    	i = 3;
                     else 
-                         i--;
+                        i--;
                          
                     break;
                             
                 case KEY_DOWN:
-                    if(i == 3)
-                           i = 0;
+                	if(i == 3)
+                    	i = 0;
                            
                     else
                         i++;
@@ -212,69 +236,79 @@ void playgame() {
              
       }
       
-      if(ch == 10) {
-      		if(i == 0) 
-			   	settings.speed = 2.5;
-			else if(i == 1)
-			   	settings.speed = 2;
-			else if(i == 2)
-			    settings.speed = 1.5;
-			else if(i == 3)
-			    settings.speed = 0.5;
-			delwin(w);
-        	clear();
-	  }
-      
+	if(ch == 10) {
+    	if(i == 0) {
+			settings.speed = 2.5;
+			settings.overall = 6500;
+		}
+		
+		else if(i == 1) {
+			settings.speed = 2;
+			settings.overall = 5500;
+		}
+		
+		else if(i == 2) {
+			settings.speed = 1.5;
+			settings.overall = 4500;
+		}
+		
+		else if(i == 3) {
+			settings.speed = 0.5;
+			settings.overall = 3500;
+		}
+		
+		delwin(w);
+		clear();
+	}
       
 	//Creating tank
-	
 
-   		for(i=0; i<3; i++) {
-   			tank[i].r = LINES/2 - 2;
-   			tank[i].c = (COLS - i*3) - 1;
-   			if(i == 2)
-   				tank[i].ch = ' ';
-   			else
-   				tank[i].ch = '+';
-   		} 
+	for(i=0; i<3; i++) {
+   		tank[i].r = LINES/2 - 2;
+   		tank[i].c = (COLS - i*3) - 1;
+   		if(i == 2)
+   			tank[i].ch = ' ';
+   		else
+   			tank[i].ch = '+';
+   	} 
    			
-   		for(i=3; i<6; i++) {
-   			tank[i].r = LINES/2 - 1;
-   			tank[i].c = (COLS - (i-3)*3) - 1;
-   			if(i == 5)
-   				tank[i].ch = ' ';
-   			else
-   				tank[i].ch = '|';
-   		} 
+   	for(i=3; i<6; i++) {
+   		tank[i].r = LINES/2 - 1;
+   		tank[i].c = (COLS - (i-3)*3) - 1;
+   		if(i == 5)
+   			tank[i].ch = ' ';
+   		else
+   			tank[i].ch = '|';
+   	} 
    			
-   		for(i=6; i<9; i++) {
-   			tank[i].r = LINES/2;
-   			tank[i].c = (COLS - (i-6)*3) - 1;
-   			if(i == 8)
-   				tank[i].ch = '<';
-   			else if(i == 7)
-   				tank[i].ch = ' ';
-   			else
-   				tank[i].ch = '|';
-   		}
+   	for(i=6; i<9; i++) {
+   		tank[i].r = LINES/2;
+   		tank[i].c = (COLS - (i-6)*3) - 1;
+   		if(i == 8)
+   			tank[i].ch = '<';
+   		else if(i == 7)
+   			tank[i].ch = ' ';
+   		else
+   			tank[i].ch = '|';
+   	}
    		
-   		for(i=9; i<12; i++) {
-   			tank[i].r = LINES/2 + 1;
-   			tank[i].c = (COLS - (i-9)*3) - 1;
-   			if(i == 11)
-   				tank[i].ch = ' ';
-   			else
-   				tank[i].ch = '|';
-   		} 
+   	for(i=9; i<12; i++) {
+   		tank[i].r = LINES/2 + 1;
+   		tank[i].c = (COLS - (i-9)*3) - 1;
+   		if(i == 11)
+   			tank[i].ch = ' ';
+   		else
+   			tank[i].ch = '|';
+   	} 
    		
-   		for(i=12; i<15; i++) {
-   			tank[i].r = LINES/2 + 2;
-   			tank[i].c = (COLS - (i-12)*3) - 1;
-   			if(i == 14)
-   				tank[i].ch = ' ';
-   			else
-   				tank[i].ch = '+';
-   		} 
+   	for(i=12; i<15; i++) {
+   		tank[i].r = LINES/2 + 2;
+   		tank[i].c = (COLS - (i-12)*3) - 1;
+   		if(i == 14)
+   			tank[i].ch = ' ';
+   		else
+   			tank[i].ch = '+';
+   	} 
    
    	//Creating aliens
 	
@@ -368,20 +402,24 @@ void playgame() {
       	aliens[i].alive = 1;
       	aliens[i].direction = 'd';
    	}
-	/* Set shot settings */ 
+   	
+	// Set shot settings  
+	
 	for (k=0; k<10; k++) {
 	    shot[k].active = 0;
 	    shot[k].ch = '*';
 	}
 	
     // Set bomb settings 
+    
     for (i=0; i<MAX_BOMBS; ++i) {
       	bomb[i].active = 0;
       	bomb[i].ch = 'O';
       	bomb[i].loop = 0;
     }
 	
-	/* Display game title,score header,options */
+	// Display game title,score header,options 
+	
     move(0,(COLS/2)-9);
     addstr("***--SPACE-ACE--***");
     move (0,1);
@@ -390,30 +428,34 @@ void playgame() {
 	addstr("q = quit");
 	
 	while(1) {
-      	/* Show score */
+	
+      	// Show score 
+      	
       	sprintf(tellscore, "%d", score);
       	move(0,8);
       	addstr(tellscore);
 
-	//Move tank
+		//Move tank
 	
-	for(i=0; i<15; i++) {
-		move(tank[i].r, tank[i].c);
-		addch(tank[i].ch);
+		for(i=0; i<15; i++) {
+			move(tank[i].r, tank[i].c);
+			addch(tank[i].ch);
 		
-	}
-		// Move bombs                                 
+		}
+		
+		// Move bombs
+		                                 
 		if (loops % settings.bombs == 0)                  
 			for (i=0; i<MAX_BOMBS; i++) {
 		  		if (bomb[i].active == 1) {
 		        	if (bomb[i].c < COLS) {
-		        	   	if (bomb[i].loop != 0) {
-						move(bomb[i].r,bomb[i].c-1);
-		              			addch(' ');
+		        		if (bomb[i].loop != 0) {
+							move(bomb[i].r,bomb[i].c-1);
+		              		addch(' ');
 		           		}
 		           		else
-		              			++bomb[i].loop;
-		           
+		              		++bomb[i].loop;
+		            
 		           	move(bomb[i].r,bomb[i].c);
 		           	addch(bomb[i].ch);
 		           
@@ -430,258 +472,288 @@ void playgame() {
 		  	}
 		
 		// Move shots
+		
 		if (loops % settings.shots == 0)
-		for (k=0; k<10; k++) {
-			if (shot[k].active == 1) {
-				if (shot[k].c > 0) {
-					if (shot[k].c < COLS - 2) {
+			for (k=0; k<10; k++) {
+				if (shot[k].active == 1) {
+					if (shot[k].c > 0) {
+						if (shot[k].c < COLS - 2) {
+							move(shot[k].r ,shot[k].c + 1);
+							addch(' ');
+						}
+					
+						for (j=0; j<30; ++j) {
+                  			if (aliens[j].alive == 1 && aliens[j].pr == shot[k].r && aliens[j].c == shot[k].c) {
+					     		score += 20;
+								aliens[j].alive = 0;
+								shot[k].active = 0;
+								--currentshots;
+								--currentaliens;
+								move(aliens[j].pr,aliens[j].pc);
+								addch(' ');
+					     		break;
+					 		}
+				        }
+				       
+				       	for(j=0; j<MAX_BOMBS; j++) {
+				       		if(bomb[j].active == 1 && bomb[j].r == shot[k].r && bomb[j].c == shot[k].c) {
+				       	 		score += 5;
+				       	 		bomb[j].active = 0;
+				       	 		shot[k].active = 0;
+				       	 		--currentshots;
+				       	 		move(bomb[j].r, bomb[j].c - 1);
+				       	 		addch(' ');
+				       	 		break;
+				       	 	}
+				       	}
+				       
+						if (shot[k].active == 1) {
+							move(shot[k].r,shot[k].c);
+							addch(shot[k].ch);
+							--shot[k].c;
+						}
+					}
+				
+					else {
+						shot[k].active = 0;
+						--currentshots;
 						move(shot[k].r ,shot[k].c + 1);
 						addch(' ');
 					}
-					
-				       for (j=0; j<30; ++j) {
-                  			if (aliens[j].alive == 1 && aliens[j].pr == shot[k].r && aliens[j].c == shot[k].c) {
-					     score += 20;
-					     aliens[j].alive = 0;
-					     shot[k].active = 0;
-					     --currentshots;
-					     --currentaliens;
-					     move(aliens[j].pr,aliens[j].pc);
-					     addch(' ');
-					     break;
-					 }
-				       
-				       }
-				       
-				       for(j=0; j<MAX_BOMBS; j++) {
-				       	 if(bomb[j].active == 1 && bomb[j].r == shot[k].r && bomb[j].c == shot[k].c) {
-				       	 	score += 5;
-				       	 	bomb[j].active = 0;
-				       	 	shot[k].active = 0;
-				       	 	--currentshots;
-				       	 	move(bomb[j].r, bomb[j].c - 1);
-				       	 	addch(' ');
-				       	 	break;
-				       	 }
-				       	
-				       }
-				       
-					if (shot[k].active == 1) {
-						move(shot[k].r,shot[k].c);
-						addch(shot[k].ch);
-						--shot[k].c;
-					}
-				}
-				else {
-					shot[k].active = 0;
-					--currentshots;
-					move(shot[k].r ,shot[k].c + 1);
-					addch(' ');
 				}
 			}
+		
+        // Move aliens 
+      
+		if (loops % settings.alien == 0)
+			for (i=0; i<30; i++) {
+				if (aliens[i].alive == 1) {
+					move(aliens[i].pr,aliens[i].pc);
+				    addch(' ');
+				    
+				    move(aliens[i].r,aliens[i].c);
+				    addch(aliens[i].ch);
+				    
+				    aliens[i].pr = aliens[i].r;
+				    aliens[i].pc = aliens[i].c;
+				    
+					// Check if alien should drop bomb
+					 
+				    random = 1+(rand()%100);
+				    if ((settings.bombchance - random * settings.speed) >= 0 && currentbombs < MAX_BOMBS) {
+				    	for (j=0; j<MAX_BOMBS; j++) {
+				        	if (bomb[j].active == 0) {
+				            	bomb[j].active = 1;
+				            	++currentbombs;
+				            	bomb[j].r = aliens[i].r;
+				            	bomb[j].c = aliens[i].c + 1;
+				            	break;
+				          	}	
+				       	}
+				    }
+				    
+					// Set alien's next position 
+					
+				    if (aliens[i].direction == 'u')
+				    	--aliens[i].r;
+				    else if (aliens[i].direction == 'd')
+				    	++aliens[i].r;
+				       
+				    // Check alien's next positions 
+				    
+				    if (aliens[i].r == LINES - 3) {
+				    	aliens[i].c = aliens[i]. c + 6;
+				    	aliens[i].direction = 'u';
+				    }
+				    else if (aliens[i].r == 4) {
+				    	aliens[i].c = aliens[i]. c + 6;
+				    	aliens[i].direction = 'd';
+				    }
+		     	}
+		  	}
+		  	
+		//Game won or lost
+		  	
+		if (currentaliens == 0) {
+			win = 1;
+		    break;
 		}
 		
-      /* Move aliens */
-    if (loops % settings.alien == 0)
-		for (i=0; i<30; i++) {
-			if (aliens[i].alive == 1) {
-		    	move(aliens[i].pr,aliens[i].pc);
-		        addch(' ');
-		        
-		        move(aliens[i].r,aliens[i].c);
-		        addch(aliens[i].ch);
-		        
-		        aliens[i].pr = aliens[i].r;
-		        aliens[i].pc = aliens[i].c;
-		        
-				// Check if alien should drop bomb 
-		        random = 1+(rand()%100);
-		        if ((settings.bombchance - random * settings.speed) >= 0 && currentbombs < MAX_BOMBS) {
-		           for (j=0; j<MAX_BOMBS; j++) {
-		              if (bomb[j].active == 0) {
-		                 bomb[j].active = 1;
-		                 ++currentbombs;
-		                 bomb[j].r = aliens[i].r;
-		                 bomb[j].c = aliens[i].c + 1;
-		                 break;
-		              }
-		           }
-		        }
-		        
-			    /* Set alien's next position */
-		        if (aliens[i].direction == 'u')
-		        	--aliens[i].r;
-		        else if (aliens[i].direction == 'd')
-		        	++aliens[i].r;
-		           
-		        /* Check alien's next positions */
-		        if (aliens[i].r == LINES - 3) {
-		        	aliens[i].c = aliens[i]. c + 6;
-		        	aliens[i].direction = 'u';
-		        }
-		        else if (aliens[i].r == 4) {
-		        	aliens[i].c = aliens[i]. c + 6;
-		        	aliens[i].direction = 'd';
-		        }
-         	}
-      	}
-      	
-    //Game won or lost  	
-    if (currentaliens == 0) {
-		win = 1;
-        break;
-    }
-    for (i=0; i<30; ++i) {
-        if (aliens[i].r == LINES-1) {
-        	win = 0;
-            break;
-        }
-    }
-    for (i=0; i<MAX_BOMBS; ++i) {
-    	for(j=0; j<15; j++) {	
-    		if (bomb[i].r == tank[j].r && bomb[i].c == tank[j].c) {
-        		win = 0;
-            	break;
-            }
-       	}
-    } 	
-				    
-    refresh();
-    usleep(settings.overall);
-    loops++;
-   	
-	input = getch();	
+		for (i=0; i<30; ++i) {
+		    if (aliens[i].r == LINES-1) {
+		    	win = 0;
+		        break;
+		    }
+		}
 		
-	for(i=0; i<15; i++) {
-		move(tank[i].r,tank[i].c);
-      		addch(' ');
-    } 
-				    
-	//Check input
-   if(input == 'q')
-		win = 2; 
-   else if (input == KEY_UP)
-	for(i=0; i<15; i++) 
-		tank[i].r--;			
+		for (i=0; i<MAX_BOMBS; ++i) {
+			for(j=0; j<15; j++) {	
+				if (bomb[i].r == tank[j].r && bomb[i].c == tank[j].c) {
+		    		win = 0;
+		        	break;
+		        }
+		   	}
+		} 	
+						
+		refresh();
+		usleep(settings.overall);
+		loops++;
+	   	
+		input = getch();	
 		
-   else if (input == KEY_DOWN)
-   	for(i=0; i<15; i++)
-   		tank[i].r++;
-   		
-	else if (input == ' ' && currentshots < 10) {
-		for (k=0; k<10; k++) {
-			if (shot[k].active == 0) {
-				shot[k].active = 1;
+		for(i=0; i<15; i++) {
+			move(tank[i].r,tank[i].c);
+		  	addch(' ');
+		} 
+						
+		//Check input
+	
+		if(input == 'q')
+			win = 2;
+			 
+		else if (input == KEY_UP)
+			for(i=0; i<15; i++) 
+			tank[i].r--;			
+		
+	   	else if (input == KEY_DOWN)
+	   		for(i=0; i<15; i++)
+	   			tank[i].r++;
+	   		
+		else if (input == ' ' && currentshots < 10) {
+			for (k=0; k<10; k++) {
+				if (shot[k].active == 0) {
+					shot[k].active = 1;
 					++currentshots;
 					--score;
 					shot[k].r = tank[8].r;
 					shot[k].c = COLS - 8;
 					break;
+				}
 			}
 		}
+	
+		if (win != -1)
+		    break;			   
+
+		// Check for valid tank position 
+	   	
+	   	if (tank[13].r > LINES-1) {
+	   		for(i=12; i<15; i++)
+		    	tank[i].r = LINES - 1;
+			for(i=9; i<12; i++)
+				tank[i].r = LINES - 2;
+			for(i=6; i<9; i++) 
+				tank[i].r = LINES - 3;
+			for(i=3; i<6; i++) 
+				tank[i].r = LINES - 4;
+			for(i=0; i<3; i++) 
+				tank[i].r = LINES - 5; 
+		}
+
+
+	   	if (tank[0].r < 2) {
+	   		for(i=0; i<3; i++)
+		    	tank[i].r = 2;
+			for(i=3; i<6; i++)
+				tank[i].r = 3;
+			for(i=6; i<9; i++) 
+				tank[i].r = 4;
+			for(i=9; i<12; i++) 
+				tank[i].r = 5;
+			for(i=12; i<15; i++) 
+				tank[i].r = 6; 
+		} 
+        
 	}
 	
-	if (win != -1)
-        break;			   
-
-	// Check for valid tank position 
-   if (tank[13].r > LINES-1) {
-   		for(i=12; i<15; i++)
-        	tank[i].r = LINES - 1;
-    	for(i=9; i<12; i++)
-    		tank[i].r = LINES - 2;
-    	for(i=6; i<9; i++) 
-    		tank[i].r = LINES - 3;
-    	for(i=3; i<6; i++) 
-    		tank[i].r = LINES - 4;
-    	for(i=0; i<3; i++) 
-    		tank[i].r = LINES - 5; 
-    }
-
-
-   if (tank[0].r < 2) {
-   		for(i=0; i<3; i++)
-        	tank[i].r = 2;
-    	for(i=3; i<6; i++)
-    		tank[i].r = 3;
-    	for(i=6; i<9; i++) 
-    		tank[i].r = 4;
-    	for(i=9; i<12; i++) 
-    		tank[i].r = 5;
-    	for(i=12; i<15; i++) 
-    		tank[i].r = 6; 
-    } 
-        
-  }
-	
 	gameover(win, score);
-    	endwin();
+    endwin();
 				   
 }
 
-/* This function handles displaying the win/lose screen */
+// This function handles displaying the win/lose screen 
+
 void gameover(int win, int score) {
-   struct entry list;
-   unsigned int input;
-   char name[128];	
-   FILE *fp;
-   nodelay(stdscr, 0);
-   curs_set(TRUE);
+	struct entry list;
+    unsigned int input;
+    int x;
+    char a[10];
+    char name[128];	
+    FILE *fp;
+    nodelay(stdscr, 0);
+    curs_set(TRUE);
+    sprintf(a, "%d", score);
    
-   if (win == 0) {
-      clear();
-      move((LINES/2)-1,(COLS/2)-5);
-      addstr("GAME OVER!");
-      move((LINES/2),(COLS/2)-7);
-      addstr("PRESS ANY KEY");
-      move(0,COLS-1);
-      refresh();
-      input = getch();
-   }
+    x = strlen(a);
    
-   else if (win == 1) {
-      clear();
-      move((LINES/2)-1,(COLS/2)-5);
-      addstr("YOU WIN!");
-      move((LINES/2),(COLS/2)-7);
-      addstr("PRESS ANY KEY");
-      move(0,COLS-1);
-      refresh();
-      input = getch();
-   }
+    if (win == 0) {
+    	clear();
+    	move((LINES/2)-4, (COLS/2)-4);
+        addstr("SCORE: ");
+        move((LINES/2)-4, (COLS/2)+6-x);
+        addstr(a);
+        move((LINES/2)-1, (COLS/2)-5);
+        addstr("GAME OVER!");
+        move((LINES/2),(COLS/2)-7);
+        addstr("PRESS ANY KEY");
+        move(0,COLS-1);
+        refresh();
+        input = getch();
+    }
    
-   if(input == 10) {
-	   clear();
-	   echo();
-	   nocbreak();
-	   move((LINES/2)-2, (COLS/2)-9);
-	   addstr("ENTER YOUR NAME: ");
-	   refresh();
-	   //getch();
-	   getstr(list.name);
-   }
-   //Create a file, write name and scores in it, write a sorting algorithm and then when highscore function is called then display highscores in decreasing order. 
+    else if (win == 1) {
+        clear();
+        move((LINES/2)-4, (COLS/2)-x);
+        addstr(a);
+        move((LINES/2)-1,(COLS/2)-5);
+        addstr("YOU WIN!");
+        move((LINES/2),(COLS/2)-7);
+        addstr("PRESS ANY KEY");
+        move(0,COLS-1);
+        refresh();
+        input = getch();
+    }
    
-   list.score = score;
-   fp = fopen("score.txt", "a");
-   fprintf(fp, "%s %d", list.name, list.score);
-   fprintf(fp,"\n");
-   fclose(fp);
+    if(input != 'q') {
+	    clear();
+	    echo();
+	    nocbreak();
+	    move((LINES/2)-2, (COLS/2)-9);
+	    addstr("ENTER YOUR NAME: ");
+	    refresh();
+	    getstr(list.name);
+    }
+   
+    //Creating a file and writing scores in it
+   
+    list.score = score;
+    fp = fopen("score.txt", "a");
+    fprintf(fp, "%s %d", list.name, list.score);
+    fprintf(fp,"\n");
+    fclose(fp);
 }
 
 void highscores () {
 	struct entry b[128];
-	int fd, i = 0, line, c, d, swap, p;
-	char ch, a[10];
+	
+	int fd, i = 0, j, line = 0, c, d, swap, p, x;
+	char ch, a[10], m[10], n[10];
 	FILE *fw, *fp;
 	char name[128];
+	
+	fw = fopen("score.txt", "a");
+	for(j=0; j<5; j++) 
+		fprintf(fw, "%s %d\n", "---", 0);
+		
+	fclose(fw);
+		
 	fd = open("score.txt", O_RDONLY, S_IRUSR);
 	if(fd == -1) {
 		perror("cp: can't open file");
 		exit(errno);
 	}
 	
-	//Read data from score.txt and get total no. of lines i.e structures
+	//Read data from score.txt and get total no. of lines i.e total no. of structures
 	  
 	while(read(fd, &ch, sizeof(ch))) {
 		if(ch == '\n')
@@ -713,25 +785,40 @@ void highscores () {
 			}
 		}
 	}
-				
-	fw = fopen("Highscores.txt", "w");
-  	fprintf(fw, "%s %d\n", b[i - 1].name, b[i - 1].score); 
-   	fclose(fw);
-   	
-   	//print data from "highscore.txt"
-   	
+				  	
    	clear();
    	sprintf(a, "%d", b[i - 1].score);
+   	sprintf(m, "%d", b[i - 2].score);
+   	sprintf(n, "%d", b[i - 3].score);
    	move((LINES/2 - 3), (COLS/2) - 11);
-   	addstr("------TOP SCORER------");
-   	move((LINES/2), (COLS/2 - 7));
-   	addstr("NAME : ");
+   	addstr("------TOP SCORERS------");
+   	
+   	move((LINES/2), (COLS/2 - 10));
+   	addstr("1) NAME : ");
     	move((LINES/2), (COLS/2));
    	addstr(b[i - 1].name);
    	move((LINES/2 + 1), (COLS/2 - 7));
    	addstr("SCORE : ");
    	move((LINES/2 + 1), (COLS/2));
    	addstr(a);
+   	
+   	move((LINES/2 + 2), (COLS/2 - 10));
+   	addstr("2) NAME : ");
+    	move((LINES/2 + 2), (COLS/2));
+   	addstr(b[i - 2].name);
+   	move((LINES/2 + 3), (COLS/2 - 7));
+   	addstr("SCORE : ");
+   	move((LINES/2 + 3), (COLS/2));
+   	addstr(m);
+   	
+   	move((LINES/2 + 4), (COLS/2 - 10));
+   	addstr("3) NAME : ");
+    	move((LINES/2 + 4), (COLS/2));
+   	addstr(b[i - 3].name);
+   	move((LINES/2 + 5), (COLS/2 - 7));
+   	addstr("SCORE : ");
+   	move((LINES/2 + 5), (COLS/2));
+   	addstr(n);
    	
    	int input = getch();
 	if(input == 'q')
@@ -790,6 +877,8 @@ int aboutus() {
 	addstr("Version: v1.0");
 	move((LINES + 17)/2 , (COLS - 40)/2);
 	addstr("Developed and Designed by : Nikhil Rathi");
+
+	
 	refresh();
 	int input = getch();
 	if(input == 'q')
