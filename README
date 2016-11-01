@@ -1,5 +1,10 @@
 TITLE : SPACE-ACE (Shooting game)
 
+NAME : Nikhil Rathi
+MIS ID : 111508054
+
+The game is created using basic knowledge of C language and ncurses library.
+
 PLAYING INSTRUCTION:
 KEY_UP = To move the tank up
 KEY_DOWN = To move the tank down
@@ -16,6 +21,4 @@ AIM AND SCORING:
 The alien ship moves up and down and moves towards the tank after each lap.
 Shoot the alien and earn 20 points for each hit to the mini ship.
 Every shot which does not hit the mini ship results in deduction of a point.
-Stay away from the bombs fired by the alien ship and shoot them at the same time to earn +5 points.
-
-
+Stay away from the bombs fired by the alien ship and shoot them at the same time to earn +5 points
